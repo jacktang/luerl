@@ -169,9 +169,9 @@ method_list(_, _, _) -> error(badarg).
 
 get_table(Fp, St0) when is_list(Fp) ->
     {Lfp,St1} = encode_list(Fp, St0),
-    {V,St1} = function_list(Lfp, St0),
-    Vd = decode(V, St1),
-    {Vd, St1};
+    {V,St2} = function_list(Lfp, St1),
+    Vd = decode(V, St2),
+    {Vd, St2};
 get_table(_,_) -> error(badarg).
 
 %% get_table1(LuaFuncPath, State) -> {LuaResult, State}.
