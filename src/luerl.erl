@@ -231,8 +231,8 @@ encode(L, St0) when is_list(L) ->
 			      end, {1.0,St0}, L),
     {T,St2} = luerl_emul:alloc_table(Es, St1),
     {T,St2};					%No more to do for now
-encode({function, Fun}, _) when is_function(Fun) -> 
-    {function, Fun};
+encode({function, Fun}, St) when is_function(Fun) -> 
+    {{function, Fun}, St};
 encode(_, _) -> error(badarg).			%Can't encode anything else
 
 %% decode_list([LuerlTerm], State) -> [Term].
