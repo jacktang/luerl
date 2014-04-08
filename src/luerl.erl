@@ -233,6 +233,8 @@ encode(L, St0) when is_list(L) ->
     {T,St2};					%No more to do for now
 encode({function, Fun}, St) when is_function(Fun) -> 
     {{function, Fun}, St};
+encode(Fun, St) when is_function(Fun) -> 
+    {{function, Fun}, St};
 encode(_, _) -> error(badarg).			%Can't encode anything else
 
 %% decode_list([LuerlTerm], State) -> [Term].
