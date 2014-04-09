@@ -61,8 +61,8 @@ do(S, St) when is_list(S) ->
     case load(S) of
         {ok, C} ->
             luerl_emul:chunk(C, [], St);
-        {error, Reason, _Rest} ->
-            {error, Reason}
+        {error, Errors, Warnings} ->
+            {error, {Errors, Warnings}}
     end;
 do(C, St) ->					%Pre-parsed/compiled chunk
     luerl_emul:chunk(C, [], St).
