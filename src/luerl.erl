@@ -58,8 +58,12 @@ do(SBC) ->
 do(B, St) when is_binary(B) ->
     do(binary_to_list(B), St);
 do(S, St) when is_list(S) ->
-    {ok,C} = load(S),
-    luerl_emul:chunk(C, [], St);
+    case load(S) of
+        {ok, C} ->
+            luerl_emul:chunk(C, [], St);
+        {error, Reason} ->
+            {error, Reason}
+    end;
 do(C, St) ->					%Pre-parsed/compiled chunk
     luerl_emul:chunk(C, [], St).
 
