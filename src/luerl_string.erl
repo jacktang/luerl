@@ -89,7 +89,7 @@ do_byte_ij(S, Len, I, J) when I < 1 -> do_byte_ij(S, Len, 1, J);
 do_byte_ij(S, Len, I, J) when J > Len -> do_byte_ij(S, Len, I, Len);
 do_byte_ij(_, _, I, J) when I > J -> [nil];
 do_byte_ij(S, _, I, J) ->
-    [ float(N) || N <- binary_to_list(S, I, J) ].
+    [ N || N <- binary_to_list(S, I, J) ].
 
 %% char(...) -> String
 %%  Return string of the numerical arguments.
@@ -119,7 +119,7 @@ find(As, St0) ->
 	throw:{error,E} -> lua_error(E, St0)
     end.
 
-do_find([A1,A2], St) -> find([A1,A2,1.0], St);
+do_find([A1,A2], St) -> find([A1,A2,1], St);
 do_find([A1,A2,A3], St) -> find([A1,A2,A3,nil], St);
 do_find(As, St) ->
     case luerl_lib:conv_list(As, [lua_string,lua_string,integer,lua_bool]) of
@@ -138,7 +138,7 @@ find(S, L, P, I, Pl) when I < 0 -> find(S, L, P, L+I+1, Pl);
 find(S, L, P, 0, Pl) ->  find(S, L, P, 1, Pl);
 find(S, L, P, I, true) ->			%Plain text search string
     case binary:match(S, P, [{scope,{I-1,L-I+1}}]) of
-	{Fs,Fl} -> [float(Fs+1),float(Fs+Fl)];
+	{Fs,Fl} -> [Fs+1,Fs+Fl];
 	nomatch -> [nil]
     end;
 find(S, L, P, I, false) ->			%Pattern search string
@@ -147,7 +147,7 @@ find(S, L, P, I, false) ->			%Pattern search string
 	    S1 = binary_part(S, I-1, L-I+1),	%Start searching from I
 	    case match_loop(S1, L, Pat, I) of
 		[{_,F,Len}|Cas] ->		%Matches
-		    [float(F),float(F+Len-1)|match_cas(Cas, S)];
+		    [F, F+Len-1|match_cas(Cas, S)];
 		[] -> [nil]			%No match
 	    end;
 	{error,E} -> throw({error,E})
@@ -204,7 +204,7 @@ gsub(S, L, P, R, N, St0) ->
 	    Fs = gsub_match_loop(S, L, Pat, 1, 1, N),
 	    %% io:fwrite("g->~p\n", [Fs]),
 	    {Ps,St1} = gsub_repl_loop(Fs, S, 1, L, R, St0),
-	    {[iolist_to_binary(Ps),float(length(Fs))],St1};
+	    {[iolist_to_binary(Ps), length(Fs)],St1};
 	{error,E} -> throw({error,E})
     end.
 
@@ -287,7 +287,7 @@ gsub_repl_val(S, Val, Ca) ->
 	Str -> Str
     end.
 
-len([A|_], St) when is_binary(A) -> {[float(byte_size(A))],St};
+len([A|_], St) when is_binary(A) -> {[byte_size(A)],St};
 len([A|_], St) when is_number(A) ->
     {[length(luerl_lib:number_to_list(A))],St};
 len(As, St) -> badarg_error(len, As, St).
@@ -308,7 +308,7 @@ match(As, St0) ->
 	throw:{error,E} -> lua_error(E, St0)
     end.
 
-do_match([A1,A2], St) -> match([A1,A2,1.0], St);
+do_match([A1,A2], St) -> match([A1,A2,1], St);
 do_match(As, St) ->
     case luerl_lib:conv_list(As, [lua_string,lua_string,integer]) of
 	[S,P,I] -> {match(S, byte_size(S), P, I),St};
@@ -353,7 +353,7 @@ match_loop(S0, L, Pat, I) ->
     end.
 
 match_ca({_,F,Len}, _) when Len < 0 ->		%Capture position
-    float(F);
+    F;
 match_ca({_,F,Len}, S) ->			%Capture
     binary_part(S, F-1, Len).
 

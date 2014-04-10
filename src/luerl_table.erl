@@ -75,8 +75,8 @@ test_concat(As) -> concat_args(As).
 
 concat_args([]) -> concat_args([<<>>]);
 concat_args([nil|As]) -> concat_args([<<>>|As]);
-concat_args([Sep]) -> [Sep,1.0];
-concat_args([Sep,nil|As]) -> concat_args([Sep,1.0|As]);
+concat_args([Sep]) -> [Sep,1];
+concat_args([Sep,nil|As]) -> concat_args([Sep,1|As]);
 concat_args([Sep,I]) -> [Sep,I];
 concat_args([Sep,I,nil|_]) -> [Sep,I];
 concat_args([Sep,I,J|_]) -> [Sep,I,J].
@@ -196,7 +196,7 @@ insert_tab(Tab, N, Here) when N > 0 -> {Here,Tab};
 insert_tab(Tab0, N, nil) ->
     case ttdict:find(N, Tab0) of
 	{ok,V} ->
-	    Tab1 = ttdict:update_val(float(N), nil, Tab0),
+	    Tab1 = ttdict:update_val(N, nil, Tab0),
 	    insert_tab(Tab1, N+1, V);
 	error -> insert_tab(Tab0, N+1, nil)
     end;
@@ -205,7 +205,7 @@ insert_tab(Tab0, N, Here) ->
 	       {ok,V} -> V;
 	       error -> nil
 	   end,
-    Tab1 = ttdict:store(float(N), Here, Tab0),
+    Tab1 = ttdict:store(N, Here, Tab0),
     insert_tab(Tab1, N+1, Next).
 
 insert_array(Arr0, N, Here) ->			%Put this at N shifting up
@@ -286,7 +286,7 @@ remove_array_1(Arr0, N) ->
 %% pack - pack arguments in to a table.
 
 pack(As, St0) ->
-    T = pack_loop(As, 0.0),			%Indexes are floats!
+    T = pack_loop(As, 0),			%Indexes are floats!
     {Tab,St1} = luerl_emul:alloc_table(T, St0),
     {[Tab],St1}.
 
@@ -314,8 +314,8 @@ unpack([], St) -> badarg_error(unpack, [], St).
 %% unpack_args(Args) -> Args.
 %% Fix args for unpack getting defaults right and handling 'nil'.
 
-unpack_args([]) -> unpack_args([1.0]);		%Just start from the beginning
-unpack_args([nil|As]) -> unpack_args([1.0|As]);
+unpack_args([]) -> unpack_args([1]);		%Just start from the beginning
+unpack_args([nil|As]) -> unpack_args([1|As]);
 unpack_args([I]) -> [I];			%Only one argument
 unpack_args([I,nil|_]) -> [I];			%Goto the default end
 unpack_args([I,J|_]) -> [I,J].			%Only use two arguments
@@ -387,7 +387,7 @@ lt_comp(O1, O2, St0) ->
 
 rawlength(#tref{i=N}, St) ->
     #table{a=Arr} = ?GET_TABLE(N, St#luerl.ttab),
-    {float(array:size(Arr)),St}.
+    {array:size(Arr),St}.
 
 %% length(Table, State) -> {Length,State}.
 %%  The length of a table is the number of numeric keys in sequence
@@ -398,7 +398,7 @@ length(#tref{i=N}=T, St) ->
     if ?IS_TRUE(Meta) -> luerl_emul:functioncall(Meta, [T], St);
        true ->
 	    #table{a=Arr} = ?GET_TABLE(N, St#luerl.ttab),
-	    {float(length_loop(Arr)),St}
+	    {length_loop(Arr),St}
     end.
 
 length_loop(Arr) ->

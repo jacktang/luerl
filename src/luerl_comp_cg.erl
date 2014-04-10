@@ -390,15 +390,15 @@ func_pars([]) -> [].				%No varargs
 %%  the index of the next value in the acc.
 
 tableconstructor(Fs, St0) ->
-    {Its,Fc,I,St1} = tc_fields(Fs, 0.0, St0),
+    {Its,Fc,I,St1} = tc_fields(Fs, 0, St0),
     {Its,Fc,I,St1}.
 
 tc_fields([#efield{v=V}], I0, St0) ->
-    I1 = I0 + 1.0,				%Index of next element
+    I1 = I0 + 1,				%Index of next element
     {Iv,St1} = exp(V, multiple, St0),
     {Iv,0,I1,St1};
 tc_fields([#efield{v=V}|Fs], I0, St0) ->
-    I1 = I0 + 1.0,				%Index of next element
+    I1 = I0 + 1,				%Index of next element
     {Iv,St1} = exp(V, single, St0),
     {Ifs,Fc,I2,St2} = tc_fields(Fs, I1, St1),
     {[?LOAD_LIT(I1),?PUSH] ++ Iv ++ [?PUSH] ++ Ifs,Fc+1,I2,St2};

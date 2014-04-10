@@ -222,7 +222,7 @@ encode(false, St) -> {false,St};
 encode(true, St) -> {true,St};
 encode(B, St) when is_binary(B) -> {B,St};
 encode(A, St) when is_atom(A) -> {atom_to_binary(A, latin1),St};
-encode(I, St) when is_integer(I) -> {float(I),St};
+encode(I, St) when is_integer(I) -> {I,St};
 encode(F, St) when is_float(F) -> {F,St};
 encode(L, St0) when is_list(L) ->
     {Es,{_,St1}} = lists:mapfoldl(fun ({K0,V0}, {I,S0}) ->
@@ -232,7 +232,7 @@ encode(L, St0) when is_list(L) ->
 				      (V0, {I,S0}) ->
 					  {V1,S1} = encode(V0, S0),
 					  {{I,V1},{I+1,S1}}
-			      end, {1.0,St0}, L),
+			      end, {1,St0}, L),
     {T,St2} = luerl_emul:alloc_table(Es, St1),
     {T,St2};					%No more to do for now
 encode({function, Fun}, St) when is_function(Fun) -> 

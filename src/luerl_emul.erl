@@ -140,8 +140,8 @@ init_table(Itab) ->
     A0 = array:new([{default,nil}]),		%Arrays with 'nil' as default
     Init = fun ({_,nil}, {T,A}) -> {T,A};	%Ignore nil values
 	       ({K,V}, {T,A}) when is_number(K) ->
-		   case ?IS_INTEGER(K, I) of
-		       true when I >= 1 -> {T,array:set(I, V, A)};
+		   case is_integer(K) of
+		       true when K >= 1 -> {T,array:set(K, V, A)};
 		       _NegFalse -> {ttdict:store(K, V, T),A}
 		   end;
 	       ({K,V}, {T,A}) -> {ttdict:store(K, V, T),A}
@@ -162,8 +162,8 @@ free_table(#tref{i=N}, #luerl{ttab=Ts0,tfree=Ns}=St) ->
 %%  NOTE: WE ALWAYS RETURN A SINGLE VALUE!
 
 set_table_key(#tref{}=Tref, Key, Val, St) when is_number(Key) ->
-    case ?IS_INTEGER(Key, I) of
-	true when I >= 1 -> set_table_int_key(Tref, Key, I, Val, St);
+    case is_integer(Key) of
+	true when Key >= 1 -> set_table_int_key(Tref, Key, Key, Val, St);
 	_NegFalse -> set_table_key_key(Tref, Key, Val, St)
     end;
 set_table_key(#tref{}=Tref, Key, Val, St) ->
@@ -218,8 +218,8 @@ set_table_int_key(#tref{i=N}, Key, I, Val, #luerl{ttab=Ts0}=St) ->
     end.
 
 get_table_key(#tref{}=Tref, Key, St) when is_number(Key) ->
-    case ?IS_INTEGER(Key, I) of
-	true when I >= 1 -> get_table_int_key(Tref, Key, I, St);
+    case is_integer(Key) of
+	true when Key >= 1 -> get_table_int_key(Tref, Key, Key, St);
 	_NegFalse -> get_table_key_key(Tref, Key, St)
     end;
 get_table_key(#tref{}=Tref, Key, St) ->
@@ -782,8 +782,8 @@ do_numfor(Is, Step, Lvs, [Limit,Init|Stk], Env, St, _, Fis) ->
     %% First check if we have numbers.
     case luerl_lib:tonumbers([Init,Limit,Step]) of
 	[I,L,S] ->
-	    Do = fun (St) ->
-			 numfor_loop(I, L, S, Fis, Lvs, Stk, Env, St)
+	    Do = fun (St0) ->
+			 numfor_loop(I, L, S, Fis, Lvs, Stk, Env, St0)
 		 end,
 	    loop_block(Is, Lvs, Stk, Env, St, Do);
 	nil -> badarg_error(loop, [Init,Limit,Step], St)
@@ -791,11 +791,11 @@ do_numfor(Is, Step, Lvs, [Limit,Init|Stk], Env, St, _, Fis) ->
 
 numfor_loop(N, Limit, Step, Fis, Lvs0, Stk0, Env0, St0) ->
     %% Leave the counter in the Acc for code to get.
-    if Step > 0.0, N =< Limit ->		%Keep going
+    if Step > 0, N =< Limit ->		%Keep going
 	    {_,Lvs1,Stk1,Env1,St1} =
 		emul(Fis, N, Lvs0, Stk0, Env0, St0),
 	    numfor_loop(N+Step, Limit, Step, Fis, Lvs1, Stk1, Env1, St1);
-       Step < 0.0, N >= Limit ->		%Keep going
+       Step < 0, N >= Limit ->		%Keep going
 	    {_,Lvs1,Stk1,Env1,St1} =
 		emul(Fis, N, Lvs0, Stk0, Env0, St0),
 	    numfor_loop(N+Step, Limit, Step, Fis, Lvs1, Stk1, Env1, St1);
@@ -811,8 +811,8 @@ do_genfor(Is, Acc, Var, Stk, Env, St, _, Fis) ->
 	[F,T,V|_] -> ok;
 	F -> T = nil, V = nil
     end,
-    Do = fun (St) ->
-		 genfor_loop(F, T, V, Fis, Var, Stk, Env, St)
+    Do = fun (St0) ->
+		 genfor_loop(F, T, V, Fis, Var, Stk, Env, St0)
 	 end,
     loop_block(Is, Var, Stk, Env, St, Do).
 
@@ -872,7 +872,7 @@ build_tab(Fc, I, Acc, Stk0, St0) ->
     {Tref,Stk1,St1}.
 
 build_tab_acc(I, [V|Vs]) ->
-    [{I,V}|build_tab_acc(I+1.0, Vs)];
+    [{I,V}|build_tab_acc(I+1, Vs)];
 build_tab_acc(_, []) -> [];
 build_tab_acc(_, Acc) -> error({boom,build_tab_acc,Acc}).
 
@@ -890,7 +890,7 @@ op('not', A, St) -> {not ?IS_TRUE(A),St};
 %% op('not', false, St) -> {[true],St};
 %% op('not', nil, St) -> {[true],St};
 %% op('not', _, St) -> {[false],St};		%Everything else is false
-op('#', B, St) when is_binary(B) -> {float(byte_size(B)),St};
+op('#', B, St) when is_binary(B) -> {byte_size(B),St};
 op('#', #tref{}=T, St) ->
     luerl_table:length(T, St);
 op(Op, A, St) -> badarg_error(Op, [A], St).

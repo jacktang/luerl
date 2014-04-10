@@ -45,7 +45,7 @@ getenv(As, St) -> badarg_error(getenv, As, St).
 
 clock(_, St) ->					%This is wrong!
     {Mega,Sec,Micro} = now(),
-    {[1.0e6*Mega+Sec+Micro*1.0e-6],St}.
+    {[1000000 * Mega + Sec +Micro * 1.0e-6],St}.
 
 date(_, St) ->
     {{Ye,Mo,Da},{Ho,Mi,Sec}} = calendar:local_time(),
@@ -58,4 +58,4 @@ difftime([A1,A2|_], St) ->
 
 time(_, St) ->					%Time since 1 Jan 1970
     {M,S,_} = now(),
-    {[1.0e6*M+S],St}.
+    {[1000000*M+S],St}.

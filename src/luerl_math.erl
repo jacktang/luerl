@@ -92,7 +92,7 @@ atan2(As, St) ->
 
 ceil(As, St) ->
     case luerl_lib:tonumbers(As) of
-	[N|_] -> {[float(round(N + 0.5))],St};
+	[N|_] -> {[ceiling(N)],St};
 	_ -> badarg_error(ceil, As, St)
     end.
 
@@ -122,15 +122,14 @@ exp(As, St) ->
 
 floor(As, St) ->
     case luerl_lib:tonumbers(As) of
-	[N|_] -> {[float(round(N - 0.5))],St};
+	[N|_] -> {[floor(N)],St};
 	_ -> badarg_error(floor, As, St)
     end.
 
 fmod(As, St) ->
     case luerl_lib:tonumbers(As) of
 	[X,Y|_] ->
-	    Div = float(trunc(X/Y)),
-	    Rem = X - Div*Y,
+	    Rem = round(X) rem round(Y),
 	    {[Rem],St};
 	_ -> badarg_error(fmod, As, St)
     end.
@@ -141,11 +140,12 @@ frexp(As, St) ->				%M,E such that X = M*2^E
 	    <<_:1,E0:11,M0:52>> = <<X/float>>,	%The sneaky bit!
 	    Two52 = 1 bsl 52,
 	    M1 = (M0 bor Two52)/Two52,
-	    if M1 >= 1.0 -> M2 = M1/2, E1 = E0 - 1022; %Export M2, E1
-	       M1 < 0.5 -> M2 = M1*2.0, E1 = E0 - 1024;
-	       true -> M2 = M1, E1 = E0 - 1023
-	    end,
-	    {[float(M2),float(E1)],St};
+      {M2, E1} = 
+	      if M1 >= 1.0 ->  { M1/2, E0 - 1022}; %Export M2, E1
+	         M1 < 0.5 -> {M1 * 2, E0 - 1024};
+	         true -> {M1, E0 - 1023}
+	      end,
+	    {[M2,E1],St};
 	_ -> badarg_error(frexp, As, St)
     end.
 
@@ -161,7 +161,7 @@ ldexp(As, St) ->
 log(As, St) ->
     case luerl_lib:tonumbers(As) of
 	[N] -> {[math:log(N)],St};
-	[N,10.0|_] -> {[math:log10(N)],St};	%Seeing it is builtin
+	[N,10|_] -> {[math:log10(N)],St};	%Seeing it is builtin
 	[N1,N2|_] ->
 	    {[math:log(N1)/math:log(N2)],St};
 	_ -> badarg_error(log, As, St)
@@ -169,7 +169,7 @@ log(As, St) ->
 
 log10(As, St) ->				%For 5.1 backwards compatibility
     case luerl_lib:tonumbers(As) of
-	[0.0|_] -> {[-500.0],St};		%Bit hacky
+	[0|_] -> {[500],St};		%Bit hacky
 	[N|_] -> {[math:log10(N)],St};
 	_ -> badarg_error(log10, As, St)
     end.
@@ -189,7 +189,7 @@ min(As, St) ->
 modf(As, St) ->
     case luerl_lib:tonumbers(As) of
 	[N|_] ->
-	    I = float(trunc(N)),		%Integral part
+	    I = trunc(N),		%Integral part
 	    {[I,N-I],St};
 	_ -> badarg_error(modf, As, St)
     end.
@@ -211,10 +211,10 @@ random(As, St) ->
 	[] -> {[random:uniform()],St};		%0-1.0
 	[M] when M > 1 ->
 	    R = random:uniform(M),
-	    {[float(R)],St};
+	    {[R],St};
 	[M,N] when N > M ->
 	    R = random:uniform(N - M),
-	    {[float(R + M)],St};
+	    {[R + M],St};
 	_ -> badarg_error(random, As, St)
     end.
 
@@ -256,4 +256,20 @@ tanh(As, St) ->
     case luerl_lib:tonumbers(As) of
 	[N|_] -> {[math:tanh(N)],St};
 	_ -> badarg_error(tanh, As, St)
+    end.
+
+floor(X) ->
+    T = erlang:trunc(X),
+    case (X - T) of
+        Neg when Neg < 0 -> T - 1;
+        Pos when Pos > 0 -> T;
+        _ -> T
+    end.
+
+ceiling(X) ->
+    T = erlang:trunc(X),
+    case (X - T) of
+        Neg when Neg < 0 -> T;
+        Pos when Pos > 0 -> T + 1;
+        _ -> T
     end.

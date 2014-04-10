@@ -259,7 +259,7 @@ stmt({repeat,Line,B,Exp}, St) ->
 stmt({'if',Line,Tests,Else}, St) ->
     if_stmt(Line, Tests, Else, St);
 stmt({for,Line,V,I,L,B}, St) ->			%Default step of 1.0
-    numfor_stmt(Line, V, I, L, {'NUMBER',Line,1.0}, B, St);
+    numfor_stmt(Line, V, I, L, {'NUMBER',Line,1}, B, St);
 stmt({for,Line,V,I,L,S,B}, St) ->
     numfor_stmt(Line, V, I, L, S, B, St);
 stmt({for,Line,Ns,Gs,B}, St) ->
