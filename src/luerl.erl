@@ -237,6 +237,8 @@ encode(L, St0) when is_list(L) ->
     {T,St2};					%No more to do for now
 encode({function, Fun}, St) when is_function(Fun) -> 
     {{function, Fun}, St};
+encode({erlang, Val}, St) ->
+    {{erlang, Val}, St};
 encode(_, _) -> error(badarg).			%Can't encode anything else
 
 %% decode_list([LuerlTerm], State) -> [Term].
@@ -259,4 +261,5 @@ decode(#tref{i=N}, St) ->
 	_Undefined -> error(badarg)
     end;
 decode({function,Fun}, _) -> {function,Fun};
+decode({erlang,Val}, _) -> {erlang,Val};
 decode(_, _) -> error(badarg).			%Shouldn't have anything else
