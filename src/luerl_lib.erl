@@ -228,6 +228,10 @@ number_to_list(N) ->
 
 tostring(N) when is_number(N) -> list_to_binary(number_to_list(N));
 tostring(B) when is_binary(B) -> B;
+tostring({erlang, A}) when is_atom(A) ->
+    atom_to_binary(A, utf8);
+tostring({erlang, B}) ->
+    tostring(B);
 tostring(_) -> nil.
 
 tostrings(As) -> tostrings(As, []).
